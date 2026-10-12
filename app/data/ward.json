@@ -2,7 +2,10 @@
   "name": "Kotturpuram Ward",
   "city": "Chennai",
   "state": "Tamil Nadu",
-  "centre": { "lat": 13.0155, "lon": 80.2462 },
+  "centre": {
+    "lat": 13.0155,
+    "lon": 80.2462
+  },
   "bbox": {
     "min_lat": 12.997,
     "max_lat": 13.034,
