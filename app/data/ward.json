@@ -1,0 +1,16 @@
+{
+  "name": "Kotturpuram Ward",
+  "city": "Chennai",
+  "state": "Tamil Nadu",
+  "centre": { "lat": 13.0155, "lon": 80.2462 },
+  "bbox": {
+    "min_lat": 12.997,
+    "max_lat": 13.034,
+    "min_lon": 80.228,
+    "max_lon": 80.265
+  },
+  "cell_size_m": 150,
+  "population": 48000,
+  "ward_no": "174",
+  "vulnerability_note": "Low-lying area adjacent to Adyar River; historically flood-prone during northeast monsoon."
+}

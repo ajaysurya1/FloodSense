@@ -1,0 +1,57 @@
+# FloodSense Backend Configuration
+# ──────────────────────────────────────────────────────────────────────────────
+# All operational constants live here. Every number is labelled ASSUMPTION
+# and must be reviewed by domain experts before production use.
+
+app:
+  name: "FloodSense – Hyperlocal Flood Early Warning"
+  version: "0.1.0-hackathon"
+
+# Global mode: LIVE (real APIs) or SCENARIO (replay simulated storm)
+mode: "LIVE"   # override with env var FLOODSENSE_MODE=SCENARIO
+
+ward_config: "../data/ward.json"
+data_dir: "../data"
+
+grid:
+  cell_size_m: 150   # ASSUMPTION: coarser cells = faster, finer = more accurate
+
+risk_weights:
+  # ASSUMPTION: weights set by qualitative expert elicitation; not calibrated.
+  rain_intensity_next_3h: 0.30
+  cumulative_rain: 0.20
+  terrain_lowness: 0.20
+  hotspot_proximity: 0.15
+  drainage_penalty: 0.10
+  sensor_rate_of_rise: 0.05   # increases once sensors are deployed
+
+severity_thresholds:
+  watch: 35       # ASSUMPTION
+  warning: 60     # ASSUMPTION
+  severe: 80      # ASSUMPTION
+
+confidence_rules:
+  # ASSUMPTION
+  stale_data_minutes: 30
+  no_nearby_sensor_km: 1.0
+  disagree_ratio: 0.20   # if two sources disagree by >20 % → lower confidence
+
+sensor:
+  rate_of_rise_urgent_cm_per_5min: 4.0   # ASSUMPTION: triggers ground sensor override
+  critical_level_cm: 60.0                 # ASSUMPTION: absolute level override
+  stale_minutes: 15
+  offline_minutes: 30
+  smoothing_readings: 5   # last N readings for rate calculation
+
+forecast:
+  cache_minutes: 5
+  horizons: [30, 60, 120, 180]
+
+elevation:
+  cache_file: "../data/terrain_cache.json"
+
+alerts:
+  template_file: "../data/templates/alert_templates.yaml"
+
+db:
+  path: "../data/floodsense.db"

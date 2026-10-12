@@ -1,0 +1,103 @@
+alert:
+  watch:
+    resident:
+      en: |
+        ⚠️ FLOOD WATCH – {area}, {ward}
+        Heavy rainfall expected. Flooding possible in {hours} hours.
+        ✅ What to do:
+        • Move valuables and important documents to upper floors.
+        • Keep emergency kit ready (torch, medicines, ID, cash).
+        • Avoid parking vehicles in low-lying areas near {drain_name}.
+        • Stay tuned to official NDMA SACHET alerts.
+        📞 Help: Ward Helpline [FILL IN] | NDMA [FILL IN] | ARPA 1800-103-5555
+        —
+        ⚠️ This alert complements official NDMA SACHET warnings and does NOT replace them. Risk estimate is a heuristic, uncalibrated output.
+      ta: |
+        ⚠️ வெள்ள கண்காணிப்பு – {area}, {ward}
+        கனமழை எதிர்பார்க்கப்படுகிறது. {hours} மணி நேரத்தில் வெள்ளம் ஏற்படலாம்.
+        ✅ என்ன செய்வது:
+        • மதிப்புமிக்க பொருட்களையும் முக்கியமான ஆவணங்களையும் மேல் தளத்திற்கு மாற்றவும்.
+        • அவசரகால பொருட்கள் (டார்ச், மருந்துகள், அடையாள அட்டை, பணம்) தயாராக வைக்கவும்.
+        • {drain_name} அருகில் உள்ள தாழ்வான பகுதிகளில் வாகனங்களை நிறுத்த வேண்டாம்.
+        • NDMA SACHET அதிகாரப்பூர்வ எச்சரிக்கைகளைப் பின்பற்றவும்.
+        📞 உதவி: வார்டு ஹெல்ப்லைன் [FILL IN] | NDMA [FILL IN] | ARPA 1800-103-5555
+        —
+        ⚠️ இந்த எச்சரிக்கை NDMA SACHET அதிகாரப்பூர்வ எச்சரிக்கைகளை நிரப்புகிறது, மாற்றுவதில்லை. [Tamil copy needs review by a native speaker before real use]
+    official:
+      en: |
+        FLOOD WATCH – {area}, {ward} | {timestamp}
+        Severity: WATCH | Confidence: {confidence}
+        Expected onset: {onset_window}
+        Top risk drivers: {reasons}
+        Recommended action: Inspect and clear drains in {drain_name} vicinity; deploy pre-positioned pump if available.
+        Data sources: Open-Meteo forecast (LIVE), terrain (SEED), hotspots (SEED).
+        Risk is a heuristic, uncalibrated estimate. Complement with official NDMA SACHET.
+
+  warning:
+    resident:
+      en: |
+        🟠 FLOOD WARNING – {area}, {ward}
+        Significant flooding expected within {hours} hours near {drain_name}.
+        ✅ Act now:
+        • Move to upper floors or safe ground immediately if you live in a low-lying area.
+        • Disconnect electrical appliances near ground level.
+        • Do NOT walk or drive through flooded streets.
+        • Alert elderly and disabled neighbours.
+        📞 Help: Ward Helpline [FILL IN] | NDMA [FILL IN] | ARPA 1800-103-5555
+        —
+        🟠 Complements NDMA SACHET official warnings. Heuristic estimate only.
+      ta: |
+        🟠 வெள்ள எச்சரிக்கை – {area}, {ward}
+        {hours} மணி நேரத்தில் {drain_name} அருகில் குறிப்பிடத்தக்க வெள்ளம் எதிர்பார்க்கப்படுகிறது.
+        ✅ இப்போதே செய்யுங்கள்:
+        • தாழ்வான பகுதியில் வாழ்கிறீர்களென்றால் உடனடியாக மேல் தளம் அல்லது பாதுகாப்பான இடத்திற்கு செல்லவும்.
+        • தரை மட்டத்தில் உள்ள மின் கருவிகளை துண்டிக்கவும்.
+        • வெள்ள நீரில் நடக்கவோ வாகனம் ஓட்டவோ வேண்டாம்.
+        • வயதானவர்கள் மற்றும் மாற்றுத்திறனாளி அண்டை வீட்டாரை எச்சரிக்கவும்.
+        📞 உதவி: வார்டு ஹெல்ப்லைன் [FILL IN] | NDMA [FILL IN] | ARPA 1800-103-5555
+        —
+        🟠 NDMA SACHET அதிகாரப்பூர்வ எச்சரிக்கைகளை நிரப்புகிறது. [Tamil copy needs native-speaker review]
+    official:
+      en: |
+        FLOOD WARNING – {area}, {ward} | {timestamp}
+        Severity: WARNING | Confidence: {confidence}
+        Expected onset: {onset_window}
+        Top risk drivers: {reasons}
+        Recommended actions: Deploy mobile pump to {drain_name}; consider road closure advisory for {street}; alert emergency services.
+        Data sources: Open-Meteo forecast (LIVE), terrain (SEED), hotspots (SEED), sensors (SIMULATED).
+        Heuristic, uncalibrated estimate. Complement with NDMA SACHET.
+
+  urgent:
+    resident:
+      en: |
+        🔴 URGENT FLOOD ALERT – {area}, {ward}
+        FLOODING IS OCCURRING OR IMMINENT at {drain_name}.
+        ✅ Evacuate immediately:
+        • Leave low-lying areas NOW. Go to {shelter_name} or the nearest high ground.
+        • Do NOT wait. Take medicines, documents, phone, cash.
+        • Call for help if you cannot move: [FILL IN].
+        • Do NOT drive through water. Turn around, don't drown.
+        📞 Emergency: 112 | NDMA [FILL IN] | Ward Crisis Line [FILL IN]
+        —
+        🔴 Complements NDMA SACHET. Ground sensor override or model Severe band triggered this alert. Heuristic estimate.
+      ta: |
+        🔴 அவசர வெள்ள எச்சரிக்கை – {area}, {ward}
+        {drain_name} பகுதியில் வெள்ளம் நிகழ்கிறது அல்லது உடனடியாக ஏற்படும்.
+        ✅ உடனடியாக வெளியேறுங்கள்:
+        • இப்போதே தாழ்வான பகுதிகளை விட்டு வெளியேறுங்கள். {shelter_name} அல்லது அருகிலுள்ள உயரமான இடத்திற்கு செல்லுங்கள்.
+        • காத்திருக்காதீர்கள். மருந்துகள், ஆவணங்கள், தொலைபேசி, பணம் எடுத்துச் செல்லுங்கள்.
+        • நகர முடியாவிட்டால் உதவிக்கு அழையுங்கள்: [FILL IN].
+        • தண்ணீரில் வாகனம் ஓட்டாதீர்கள்.
+        📞 அவசரநிலை: 112 | NDMA [FILL IN] | வார்டு நெருக்கடி எண் [FILL IN]
+        —
+        🔴 NDMA SACHET-ஐ நிரப்புகிறது. [Tamil copy needs native-speaker review before real use]
+    official:
+      en: |
+        URGENT FLOOD ALERT – {area}, {ward} | {timestamp}
+        Severity: URGENT | Confidence: {confidence}
+        Trigger: {trigger_reason}
+        Expected onset: {onset_window}
+        Top risk drivers: {reasons}
+        Recommended actions: IMMEDIATE road closure of {street}; activate emergency response team; open {shelter_name} as evacuation centre; notify NDMA/SDMA.
+        Data sources: {data_sources}
+        GROUND SENSOR OVERRIDE may have triggered this alert. Heuristic, uncalibrated estimate. Transmit to NDMA SACHET through authorised channels.

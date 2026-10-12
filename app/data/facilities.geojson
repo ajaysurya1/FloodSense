@@ -1,0 +1,12 @@
+{
+  "type": "FeatureCollection",
+  "_data_source": "SEED – illustrative critical facility locations; NOT verified municipal data. Replace with official NDMA/corporation records before operational use.",
+  "features": [
+    {"type":"Feature","properties":{"name":"Kotturpuram Govt Hospital","type":"hospital","capacity":120,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2452,13.0198]}},
+    {"type":"Feature","properties":{"name":"Kotturpuram Primary School","type":"school","capacity":800,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2469,13.0142]}},
+    {"type":"Feature","properties":{"name":"Srinivasa Nagar Community Hall (Shelter)","type":"shelter","capacity":300,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2401,13.0218]}},
+    {"type":"Feature","properties":{"name":"Gandhi Nagar Primary School","type":"school","capacity":600,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2488,13.0192]}},
+    {"type":"Feature","properties":{"name":"Kasturba Nagar Govt Dispensary","type":"hospital","capacity":40,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2535,13.0248]}},
+    {"type":"Feature","properties":{"name":"MRTS Kotturpuram Evacuation Point","type":"shelter","capacity":500,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2478,13.0100]}}
+  ]
+}

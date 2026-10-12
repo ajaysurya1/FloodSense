@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "_data_source": "SEED – illustrative locations derived from public flood-inundation reports; NOT verified municipal records. Replace with official GIS data before operational use.",
+  "features": [
+    {"type":"Feature","properties":{"name":"Adyar River Bridge underpass","risk_class":"high","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2510,13.0070]}},
+    {"type":"Feature","properties":{"name":"Kotturpuram Main Road dip","risk_class":"high","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2445,13.0135]}},
+    {"type":"Feature","properties":{"name":"Gandhi Nagar low-lying pocket","risk_class":"high","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2480,13.0185]}},
+    {"type":"Feature","properties":{"name":"Srinivasa Nagar underpass","risk_class":"medium","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2395,13.0220]}},
+    {"type":"Feature","properties":{"name":"Kasturba Nagar junction","risk_class":"medium","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2530,13.0250]}},
+    {"type":"Feature","properties":{"name":"3rd Seaward Road depression","risk_class":"medium","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2552,13.0175]}},
+    {"type":"Feature","properties":{"name":"Nandanam cross road dip","risk_class":"low","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2415,13.0280]}},
+    {"type":"Feature","properties":{"name":"Near MRTS Kotturpuram","risk_class":"high","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2475,13.0095]}},
+    {"type":"Feature","properties":{"name":"South Boag Road junction","risk_class":"medium","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2360,13.0300]}},
+    {"type":"Feature","properties":{"name":"East Canal Road low patch","risk_class":"high","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2498,13.0148]}},
+    {"type":"Feature","properties":{"name":"Ramanujam Street depression","risk_class":"medium","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2427,13.0163]}},
+    {"type":"Feature","properties":{"name":"Adyar Estuary fringe","risk_class":"high","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2562,13.0082]}},
+    {"type":"Feature","properties":{"name":"Old Mahabalipuram Rd underpass","risk_class":"medium","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2340,13.0175]}},
+    {"type":"Feature","properties":{"name":"Indira Nagar canal crossing","risk_class":"high","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2510,13.0215]}},
+    {"type":"Feature","properties":{"name":"Venugopal Nagar pocket","risk_class":"low","source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2442,13.0305]}}
+  ]
+}

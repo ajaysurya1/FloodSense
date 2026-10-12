@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+.pytest_cache/
+.coverage
+
+# Node / Vite
+node_modules/
+dist/
+.env.local
+
+# IDEs / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Local data / secrets
+*.db
+*.sqlite3
+*.log
+.env
+*.env
+
+# HuggingFace / model weights (too large for git)
+*.bin
+*.safetensors
+*.ckpt
+*.pth
+*.pt
+
+fix_encoding.py
