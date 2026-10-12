@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import aiosqlite
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 
 from app.core.config import settings
 from app.core.database import get_db
@@ -54,7 +54,7 @@ async def _check_duplicate(db, phash: str, lat: float, lon: float, ts: str) -> i
 async def _check_corroboration(db, lat: float, lon: float) -> str:
     """Return 'corroborated', 'emerging', or 'unverified'."""
     try:
-        # Check against risk cells (simplified: hotspot proximity)
+        # Check against hotspot proximity (SEED data)
         import json as _json
         hotspots_path = Path(settings.data_dir) / "hotspots.geojson"
         with open(hotspots_path, encoding="utf-8") as f:
@@ -64,15 +64,30 @@ async def _check_corroboration(db, lat: float, lon: float) -> str:
             if _haversine_km(lat, lon, hs_lat, hs_lon) < 0.3:
                 return "corroborated"
 
-        # Check sensor proximity
+        # Check physical sensor rate-of-rise (> 1.0 cm/5min) OR nearby CCTV virtual sensor showing flood-like frames
         from app.services.sensor_state import get_latest_sensor_state
         sensors = await get_latest_sensor_state()
         for s in sensors.values():
-            if s.get("lat") and s.get("lon") and s.get("rate_of_rise", 0) > 1.0:
-                if _haversine_km(lat, lon, s["lat"], s["lon"]) < 0.5:
-                    return "corroborated"
+            if s.get("lat") and s.get("lon"):
+                dist = _haversine_km(lat, lon, s["lat"], s["lon"])
+                if dist < 0.5:
+                    # Physical sensor with high rate of rise or high water level
+                    if s.get("rate_of_rise", 0) > 1.0 or s.get("water_level_cm", 0) > 30.0:
+                        return "corroborated"
+                    # CCTV sensor showing flood-like frames (uncalibrated visual proxy > 0)
+                    if s.get("data_source") == "CCTV" and s.get("water_level_cm", 0) > 0:
+                        return "corroborated"
 
-        # Check for emerging cluster (3+ reports within 300m in 20 min)
+        # Also check CCTV camera status directly
+        from app.services.cctv_ingest import get_camera_status
+        cam_statuses = get_camera_status()
+        for c in cam_statuses.values():
+            if c.get("lat") and c.get("lon"):
+                if _haversine_km(lat, lon, c["lat"], c["lon"]) < 0.5:
+                    if (c.get("last_level_cm") or 0) > 0:
+                        return "corroborated"
+
+        # Check for emerging cluster (3+ reports within 300 m in 20 min)
         cursor = await db.execute(
             "SELECT lat, lon, ts FROM citizen_reports WHERE status NOT IN ('duplicate','flagged') ORDER BY created_at DESC LIMIT 50"
         )
@@ -101,7 +116,7 @@ async def submit_report(
     lat: float = Form(...),
     lon: float = Form(...),
     report_type: str = Form(...),
-    ts: str = Form(default_factory=lambda: datetime.now(timezone.utc).isoformat()),
+    ts: str = Form(default=""),
     note: str = Form(default=""),
     image: UploadFile | None = File(None),
     db: aiosqlite.Connection = Depends(get_db),
@@ -112,6 +127,9 @@ async def submit_report(
     Reports are NEVER used to claim measured flood depth.
     """
     ts = ts or datetime.now(timezone.utc).isoformat()
+    # Derive ward_id server-side; never trust client to send it
+    from app.routers.sensors import _derive_ward_id
+    ward_id = _derive_ward_id(lat, lon)
 
     image_bytes = None
     image_path = None
@@ -168,10 +186,10 @@ async def submit_report(
     cursor = await db.execute(
         """INSERT INTO citizen_reports
            (ts, lat, lon, report_type, note, image_path, clip_label, clip_score,
-            phash, status, duplicate_of, corroboration, flags)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            phash, status, duplicate_of, corroboration, flags, ward_id)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (ts, lat, lon, report_type, note, image_path, clip_label, clip_score,
-         phash_str, status, dup_of, corroboration, flags_json),
+         phash_str, status, dup_of, corroboration, flags_json, ward_id),
     )
     await db.commit()
     report_id = cursor.lastrowid
@@ -195,14 +213,21 @@ async def submit_report(
 async def get_reports(
     limit: int = 100,
     status: str | None = None,
+    ward_id: str | None = Query(None, description="Filter reports by ward"),
     db: aiosqlite.Connection = Depends(get_db),
 ):
-    """Return recent citizen reports as GeoJSON."""
-    q = "SELECT * FROM citizen_reports"
-    params = []
+    """Return recent citizen reports as GeoJSON, optionally filtered by ward."""
+    clauses = []
+    params: list = []
     if status:
-        q += " WHERE status = ?"
+        clauses.append("status = ?")
         params.append(status)
+    if ward_id:
+        clauses.append("ward_id = ?")
+        params.append(ward_id)
+    q = "SELECT * FROM citizen_reports"
+    if clauses:
+        q += " WHERE " + " AND ".join(clauses)
     q += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
 

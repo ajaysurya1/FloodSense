@@ -198,3 +198,140 @@ def test_dashboard_summary():
         fac = fac_list[0]
         assert "data_source" in fac
         assert fac["data_source"] == "SEED"
+
+
+# ── _compute_ror unit tests ────────────────────────────────────────────────────
+# These tests prove the OLD hardcoded approach (elapsed_s = n * 10) would be
+# incorrect on irregular intervals, and the NEW timestamp-based version is not.
+
+def _make_row(ts: str, level: float) -> dict:
+    """Helper: create a fake sensor row dict."""
+    return {"ts": ts, "water_level_cm": level}
+
+
+def test_ror_regular_intervals_match_old_and_new():
+    """With exactly 10 s spacing the new version should agree with the old formula."""
+    from app.routers.sensors import _compute_ror
+    rows = [
+        _make_row("2026-10-12T10:00:30Z", 20.0),  # newest (index 0)
+        _make_row("2026-10-12T10:00:20Z", 15.0),
+        _make_row("2026-10-12T10:00:10Z", 10.0),
+        _make_row("2026-10-12T10:00:00Z",  5.0),  # oldest (index -1)
+    ]
+    # delta=15cm over 30 s → 15*(300/30) = 150 cm/5min
+    result = _compute_ror(rows)
+    assert result == 150.0
+
+
+def test_ror_irregular_intervals_differs_from_hardcoded():
+    """
+    Irregular spacing (7s, 45s, 12s) shows the old n*10 formula was wrong.
+    Old formula: elapsed = (4-1)*10 = 30 s → 15*(300/30) = 150 cm/5min  ← WRONG
+    New formula: elapsed = 64 s           → 15*(300/64) ≈ 70.3 cm/5min  ← CORRECT
+    """
+    from app.routers.sensors import _compute_ror
+    rows = [
+        _make_row("2026-10-12T10:01:04Z", 20.0),  # newest; 64 s after oldest
+        _make_row("2026-10-12T10:01:00Z", 17.0),  # 4 s gap
+        _make_row("2026-10-12T10:00:07Z", 10.0),  # 53 s gap
+        _make_row("2026-10-12T10:00:00Z",  5.0),  # oldest; 7 s gap from next
+    ]
+    result = _compute_ror(rows)
+    old_formula = round(15.0 * 300 / 30, 2)  # wrong answer (n*10=30)
+    new_formula  = round(15.0 * 300 / 64, 2)  # correct answer
+    assert result == new_formula, f"Expected {new_formula}, got {result}"
+    assert result != old_formula, "New formula should differ from hardcoded 10s formula on irregular data"
+
+
+def test_ror_identical_timestamps_returns_zero():
+    """All timestamps identical → elapsed_s == 0 → must return 0.0, not divide-by-zero."""
+    from app.routers.sensors import _compute_ror
+    rows = [
+        _make_row("2026-10-12T10:00:00Z", 20.0),
+        _make_row("2026-10-12T10:00:00Z", 15.0),
+        _make_row("2026-10-12T10:00:00Z",  5.0),
+    ]
+    assert _compute_ror(rows) == 0.0
+
+
+def test_ror_fewer_than_two_rows_returns_zero():
+    """Single or empty row → 0.0."""
+    from app.routers.sensors import _compute_ror
+    assert _compute_ror([]) == 0.0
+    assert _compute_ror([_make_row("2026-10-12T10:00:00Z", 10.0)]) == 0.0
+
+
+def test_ror_falling_level_returns_zero():
+    """Level dropping should return 0.0 (non-negative constraint)."""
+    from app.routers.sensors import _compute_ror
+    rows = [
+        _make_row("2026-10-12T10:00:30Z", 5.0),   # newest – lower level
+        _make_row("2026-10-12T10:00:00Z", 20.0),  # oldest – higher level
+    ]
+    assert _compute_ror(rows) == 0.0
+
+
+# ── Multi-ward tests ───────────────────────────────────────────────────────────
+
+def test_wards_list_endpoint():
+    """GET /api/config/wards should return a list with at least one ward."""
+    res = client.get("/api/config/wards")
+    assert res.status_code == 200
+    wards = res.json()
+    assert isinstance(wards, list)
+    assert len(wards) >= 1
+    first = wards[0]
+    assert "ward_id" in first
+    assert "name" in first
+    assert "bbox" in first
+    assert "centre" in first
+
+
+def test_ward_detail_endpoint():
+    """GET /api/config/ward/{ward_id} should return the matching ward."""
+    wards_res = client.get("/api/config/wards")
+    wards = wards_res.json()
+    first_id = wards[0]["ward_id"]
+
+    res = client.get(f"/api/config/ward/{first_id}")
+    assert res.status_code == 200
+    ward = res.json()
+    assert ward["ward_id"] == first_id
+
+
+def test_risk_with_ward_id():
+    """Risk endpoint should accept ward_id parameter without error."""
+    res = client.get("/api/risk?horizon=60&ward_id=kotturpuram")
+    assert res.status_code == 200
+    geojson = res.json()
+    assert geojson["type"] == "FeatureCollection"
+
+
+def test_sensors_with_ward_id():
+    """Sensors endpoint should accept ward_id filter."""
+    res = client.get("/api/sensors?ward_id=kotturpuram")
+    assert res.status_code == 200
+    data = res.json()
+    assert "devices" in data
+
+
+def test_reports_with_ward_id():
+    """Reports endpoint should accept ward_id filter."""
+    res = client.get("/api/reports?ward_id=kotturpuram")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["type"] == "FeatureCollection"
+
+
+# ── CCTV status tests ─────────────────────────────────────────────────────────
+
+def test_cctv_status_endpoint():
+    """GET /api/cctv/status should return a cameras dict with a disclaimer."""
+    res = client.get("/api/cctv/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert "cameras" in data
+    assert "count" in data
+    assert "disclaimer" in data
+    # Disclaimer must mention uncalibrated
+    assert "uncalibrated" in data["disclaimer"].lower()

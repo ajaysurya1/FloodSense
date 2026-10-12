@@ -15,7 +15,7 @@ function CorrBadge({ status }) {
   return <span className={`corr-chip ${classes[status] || 'corr-unverified'}`}>{status}</span>
 }
 
-export default function ReportsTab() {
+export default function ReportsTab({ wardId }) {
   const qc = useQueryClient()
   const fileRef = useRef()
   const [form, setForm] = useState({ report_type: 'flooded_street', note: '', lat: '', lon: '' })
@@ -25,8 +25,8 @@ export default function ReportsTab() {
   const [result, setResult] = useState(null)
 
   const { data: reportsData } = useQuery({
-    queryKey: ['reports'],
-    queryFn: fetchReports,
+    queryKey: ['reports', wardId],
+    queryFn: () => fetchReports(wardId),
     refetchInterval: 20_000,
   })
 

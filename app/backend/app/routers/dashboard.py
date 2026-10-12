@@ -5,11 +5,11 @@ import json
 from pathlib import Path
 
 import aiosqlite
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.risk.engine import compute_risk
+from app.risk.engine import compute_risk, _load_facilities
 
 router = APIRouter()
 
@@ -17,32 +17,32 @@ router = APIRouter()
 @router.get("/dashboard/summary")
 async def dashboard_summary(
     horizon: int = 60,
+    ward_id: str | None = Query(None, description="Ward slug; defaults to first ward if omitted"),
     db: aiosqlite.Connection = Depends(get_db),
 ):
     """
     Ranked list of high-risk cells, flagged facilities, report counts, sensor alerts.
     All risk values are heuristic, uncalibrated estimates.
     """
-    # Risk cells
-    risk_geojson = await compute_risk(horizon_min=horizon)
+    # Risk cells for the requested ward
+    risk_geojson = await compute_risk(horizon_min=horizon, ward_id=ward_id)
     cells = risk_geojson["features"]
+    effective_ward_id = risk_geojson["metadata"].get("ward_id")
 
     # Sort by score descending, keep top 20
     top_cells = sorted(cells, key=lambda f: f["properties"]["score"], reverse=True)[:20]
 
-    # Load facilities
-    facilities_path = Path(settings.data_dir) / "facilities.geojson"
-    with open(facilities_path) as f:
-        facilities_fc = json.load(f)
+    # Load facilities (ward-scoped)
+    facility_features = _load_facilities(effective_ward_id)
 
-    # Flag facilities inside high-risk cells (score ≥ watch threshold)
+    # Flag facilities inside high-risk cells (score >= watch threshold)
     def _in_bbox(fac_lon, fac_lat, cell_coords):
         lons = [c[0] for c in cell_coords[0]]
         lats = [c[1] for c in cell_coords[0]]
         return min(lons) <= fac_lon <= max(lons) and min(lats) <= fac_lat <= max(lats)
 
     flagged_facilities = []
-    for feat in facilities_fc["features"]:
+    for feat in facility_features:
         fac_lon, fac_lat = feat["geometry"]["coordinates"]
         for cell in top_cells:
             score = cell["properties"]["score"]
@@ -57,16 +57,30 @@ async def dashboard_summary(
                     })
                     break
 
-    # Report counts
-    cursor = await db.execute(
-        "SELECT status, count(*) as cnt FROM citizen_reports GROUP BY status"
-    )
+    # Report counts (ward-scoped if ward_id given)
+    if ward_id:
+        cursor = await db.execute(
+            "SELECT status, count(*) as cnt FROM citizen_reports WHERE ward_id = ? GROUP BY status",
+            (ward_id,),
+        )
+    else:
+        cursor = await db.execute(
+            "SELECT status, count(*) as cnt FROM citizen_reports GROUP BY status"
+        )
     report_counts = {row["status"]: row["cnt"] for row in await cursor.fetchall()}
 
-    # Sensor alerts
-    cursor = await db.execute(
-        "SELECT device_id, last_level, rate_of_rise, status, alert_active, data_source FROM sensor_devices"
-    )
+    # Sensor alerts (ward-scoped if ward_id given)
+    if ward_id:
+        cursor = await db.execute(
+            "SELECT device_id, last_level, rate_of_rise, status, alert_active, data_source, ward_id "
+            "FROM sensor_devices WHERE ward_id = ?",
+            (ward_id,),
+        )
+    else:
+        cursor = await db.execute(
+            "SELECT device_id, last_level, rate_of_rise, status, alert_active, data_source, ward_id "
+            "FROM sensor_devices"
+        )
     sensor_rows = [dict(r) for r in await cursor.fetchall()]
     active_sensor_alerts = [s for s in sensor_rows if s.get("alert_active")]
 
@@ -99,13 +113,15 @@ async def dashboard_summary(
         })
 
     return {
+        "ward_id": effective_ward_id,
         "top_risk_cells": actions_per_cell,
         "flagged_facilities": flagged_facilities,
         "report_counts": report_counts,
         "active_sensor_alerts": active_sensor_alerts,
         "disclaimer": (
             "All risk values are heuristic, uncalibrated estimates. "
-            "Data sources: Open-Meteo (LIVE), terrain/hotspots/facilities (SEED), sensors (SIMULATED). "
+            "Data sources: Open-Meteo (LIVE), terrain/hotspots/facilities (SEED), "
+            "sensors (SIMULATED/LIVE/CCTV). "
             "Complements NDMA SACHET; does not replace official warnings."
         ),
     }

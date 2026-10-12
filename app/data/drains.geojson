@@ -2,12 +2,18 @@
   "type": "FeatureCollection",
   "_data_source": "SEED – illustrative drain/outfall points; NOT verified municipal data. Replace with CMDA/GWMB GIS layers before operational use.",
   "features": [
-    {"type":"Feature","properties":{"name":"Adyar River outfall","capacity_class":"high","blocked":false,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2525,13.0075]}},
-    {"type":"Feature","properties":{"name":"Kotturpuram Road storm drain","capacity_class":"low","blocked":true,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2448,13.0132]}},
-    {"type":"Feature","properties":{"name":"Canal Road drain","capacity_class":"medium","blocked":false,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2500,13.0150]}},
-    {"type":"Feature","properties":{"name":"Gandhi Nagar drain","capacity_class":"low","blocked":true,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2478,13.0188]}},
-    {"type":"Feature","properties":{"name":"Nandanam outfall","capacity_class":"medium","blocked":false,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2418,13.0278]}},
-    {"type":"Feature","properties":{"name":"South Canal drain","capacity_class":"low","blocked":false,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2390,13.0225]}},
-    {"type":"Feature","properties":{"name":"MRTS underpass drain","capacity_class":"low","blocked":true,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2472,13.0098]}}
+    {"type":"Feature","properties":{"name":"Adyar River outfall","capacity_class":"high","blocked":false,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2525,13.0075]}},
+    {"type":"Feature","properties":{"name":"Kotturpuram Road storm drain","capacity_class":"low","blocked":true,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2448,13.0132]}},
+    {"type":"Feature","properties":{"name":"Canal Road drain","capacity_class":"medium","blocked":false,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2500,13.0150]}},
+    {"type":"Feature","properties":{"name":"Gandhi Nagar drain","capacity_class":"low","blocked":true,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2478,13.0188]}},
+    {"type":"Feature","properties":{"name":"Nandanam outfall","capacity_class":"medium","blocked":false,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2418,13.0278]}},
+    {"type":"Feature","properties":{"name":"South Canal drain","capacity_class":"low","blocked":false,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2390,13.0225]}},
+    {"type":"Feature","properties":{"name":"MRTS underpass drain","capacity_class":"low","blocked":true,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2472,13.0098]}},
+    {"type":"Feature","properties":{"name":"Adyar outfall south","capacity_class":"high","blocked":false,"source":"SEED","ward_id":"adyar"},"geometry":{"type":"Point","coordinates":[80.2600,12.9980]}},
+    {"type":"Feature","properties":{"name":"Adyar backwater drain","capacity_class":"low","blocked":true,"source":"SEED","ward_id":"adyar"},"geometry":{"type":"Point","coordinates":[80.2560,13.0070]}},
+    {"type":"Feature","properties":{"name":"Buckingham Canal outfall Nandanam","capacity_class":"medium","blocked":false,"source":"SEED","ward_id":"nandanam"},"geometry":{"type":"Point","coordinates":[80.2265,13.0350]}},
+    {"type":"Feature","properties":{"name":"Nandanam culvert","capacity_class":"low","blocked":true,"source":"SEED","ward_id":"nandanam"},"geometry":{"type":"Point","coordinates":[80.2320,13.0380]}},
+    {"type":"Feature","properties":{"name":"Velachery lake outfall","capacity_class":"medium","blocked":false,"source":"SEED","ward_id":"velachery"},"geometry":{"type":"Point","coordinates":[80.2185,12.9750]}},
+    {"type":"Feature","properties":{"name":"Velachery road drain","capacity_class":"low","blocked":true,"source":"SEED","ward_id":"velachery"},"geometry":{"type":"Point","coordinates":[80.2160,12.9840]}}
   ]
 }

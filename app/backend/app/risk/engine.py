@@ -1,9 +1,9 @@
 """
 Risk Engine (D1) – FloodSense
 
-Computes per-cell flood risk scores for the demo ward.
+Computes per-cell flood risk scores for the selected ward.
 
-⚠️ ALL outputs are heuristic, uncalibrated estimates.
+WARNING: ALL outputs are heuristic, uncalibrated estimates.
     Weights in config.yaml are ASSUMPTIONS not calibrated parameters.
     Do NOT use for life-safety decisions without expert validation.
 """
@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import math
 import time
 from pathlib import Path
@@ -22,31 +23,112 @@ from app.core.config import settings
 from app.services import open_meteo, elevation_service
 from app.services.sensor_state import get_latest_sensor_state
 
+logger = logging.getLogger(__name__)
 
 # ── Ward + seed data ──────────────────────────────────────────────────────────
 _DATA = Path(settings.data_dir)
 
-def _load_ward() -> dict:
-    with open(_DATA / "ward.json", encoding="utf-8") as f:
-        return json.load(f)
 
-def _load_hotspots() -> list[dict]:
-    with open(_DATA / "hotspots.geojson", encoding="utf-8") as f:
+def _load_wards() -> list[dict]:
+    """Load all wards. Falls back to legacy ward.json if wards.json absent."""
+    wards_path = _DATA / "wards.json"
+    if wards_path.exists():
+        with open(wards_path, encoding="utf-8") as f:
+            return json.load(f)
+    # Legacy single-ward fallback
+    ward_path = _DATA / "ward.json"
+    with open(ward_path, encoding="utf-8") as f:
+        ward = json.load(f)
+    if "ward_id" not in ward:
+        ward["ward_id"] = "kotturpuram"
+    return [ward]
+
+
+def _load_ward(ward_id: str | None) -> dict:
+    """Return the ward dict for the given ward_id, defaulting to the first ward."""
+    wards = _load_wards()
+    if not ward_id:
+        return wards[0]
+    for w in wards:
+        if w.get("ward_id") == ward_id:
+            return w
+    logger.warning("ward_id '%s' not found; falling back to first ward.", ward_id)
+    return wards[0]
+
+
+def _load_hotspots(ward_id: str | None) -> list:
+    """
+    Load hotspot features for the given ward.
+
+    Strategy: we add a ward_id property to each feature in the shared
+    hotspots.geojson files, then filter here.  This is less error-prone
+    than splitting into per-ward files when the seed dataset is small and
+    features already have explicit coordinates.  The trade-off is one extra
+    JSON scan per request, which is negligible for demo-scale data.
+    """
+    # Try per-ward file first (future-proof)
+    if ward_id:
+        per_ward = _DATA / f"hotspots_{ward_id}.geojson"
+        if per_ward.exists():
+            with open(per_ward, encoding="utf-8") as f:
+                fc = json.load(f)
+            return [feat["geometry"]["coordinates"] + [feat["properties"]["risk_class"]]
+                    for feat in fc["features"]]
+
+    # Fall back to shared file; filter by ward_id property if present
+    path = _DATA / "hotspots.geojson"
+    with open(path, encoding="utf-8") as f:
         fc = json.load(f)
+    features = fc["features"]
+    if ward_id:
+        features = [f for f in features
+                    if f["properties"].get("ward_id", ward_id) == ward_id]
     return [feat["geometry"]["coordinates"] + [feat["properties"]["risk_class"]]
-            for feat in fc["features"]]
+            for feat in features]
 
-def _load_drains() -> list[dict]:
-    with open(_DATA / "drains.geojson", encoding="utf-8") as f:
+
+def _load_drains(ward_id: str | None) -> list[dict]:
+    """Load drain features for the given ward (same strategy as hotspots)."""
+    if ward_id:
+        per_ward = _DATA / f"drains_{ward_id}.geojson"
+        if per_ward.exists():
+            with open(per_ward, encoding="utf-8") as f:
+                fc = json.load(f)
+            return fc["features"]
+
+    path = _DATA / "drains.geojson"
+    with open(path, encoding="utf-8") as f:
         fc = json.load(f)
-    return fc["features"]
+    features = fc["features"]
+    if ward_id:
+        features = [f for f in features
+                    if f["properties"].get("ward_id", ward_id) == ward_id]
+    return features
+
+
+def _load_facilities(ward_id: str | None) -> list[dict]:
+    """Load facility features for the given ward."""
+    if ward_id:
+        per_ward = _DATA / f"facilities_{ward_id}.geojson"
+        if per_ward.exists():
+            with open(per_ward, encoding="utf-8") as f:
+                fc = json.load(f)
+            return fc["features"]
+
+    path = _DATA / "facilities.geojson"
+    with open(path, encoding="utf-8") as f:
+        fc = json.load(f)
+    features = fc["features"]
+    if ward_id:
+        features = [f for f in features
+                    if f["properties"].get("ward_id", ward_id) == ward_id]
+    return features
 
 
 # ── Grid generation ───────────────────────────────────────────────────────────
 def _generate_grid(ward: dict, cell_m: int) -> list[dict]:
     """Return list of cell dicts with centre lat/lon."""
     bb = ward["bbox"]
-    # Approximate degrees per metre at this latitude
     lat_c = (bb["min_lat"] + bb["max_lat"]) / 2
     deg_lat = cell_m / 111_320
     deg_lon = cell_m / (111_320 * math.cos(math.radians(lat_c)))
@@ -139,10 +221,19 @@ def _confidence(
 
 
 # ── Scenario data (SIMULATED storm) ──────────────────────────────────────────
-def _scenario_rain(lat: float, lon: float, horizon_min: int) -> dict:
-    """Return simulated rainfall mimicking a northeast-monsoon squall."""
-    # Epicentre near Adyar River
-    d = _haversine_km(lat, lon, 13.0070, 80.2510)
+def _scenario_rain(lat: float, lon: float, horizon_min: int, ward: dict) -> dict:
+    """
+    Return simulated rainfall mimicking a northeast-monsoon squall.
+
+    Bug fix (v0.2, Part 1): epicentre is now ward-relative (offset from the
+    ward's centre), not hardcoded to a fixed Adyar lat/lon.  This ensures
+    SCENARIO mode is meaningful for every ward, not just Kotturpuram.
+    """
+    centre = ward.get("centre", {"lat": 13.0070, "lon": 80.2510})
+    # Place storm epicentre 0.8 km south-east of ward centre (ASSUMPTION)
+    epic_lat = centre["lat"] - 0.008
+    epic_lon = centre["lon"] + 0.008
+    d = _haversine_km(lat, lon, epic_lat, epic_lon)
     base = max(0.0, 45.0 - d * 80)           # up to 45 mm/3h near epicentre
     intensity = base * (1 + 0.3 * math.sin(time.time() / 60))  # gentle pulse
     cumulative = intensity * (horizon_min / 60)
@@ -155,46 +246,61 @@ def _scenario_rain(lat: float, lon: float, horizon_min: int) -> dict:
 
 
 # ── Main risk computation ─────────────────────────────────────────────────────
-async def compute_risk(horizon_min: int = 60) -> dict:
+async def compute_risk(horizon_min: int = 60, ward_id: str | None = None) -> dict:
     """
-    Compute per-cell risk GeoJSON.
+    Compute per-cell risk GeoJSON for the given ward.
     Returns FeatureCollection with properties per cell.
     All scores are heuristic, uncalibrated estimates.
     """
-    ward = _load_ward()
-    hotspots = _load_hotspots()
-    drains = _load_drains()
+    ward = _load_ward(ward_id)
+    effective_ward_id = ward.get("ward_id", ward_id)
+    hotspots = _load_hotspots(effective_ward_id)
+    drains = _load_drains(effective_ward_id)
 
     cells = _generate_grid(ward, 150)  # 150m cell size – configurable in config.yaml
 
-    # Fetch elevation (cached)
+    # Fetch elevation (cached; keyed by lat/lon, ward-agnostic)
     lats = [c["lat"] for c in cells]
     lons = [c["lon"] for c in cells]
     elevations, elev_from_cache = await elevation_service.get_elevations(lats, lons)
 
     # Compute terrain lowness
+    # Bug fix (v0.2): previously silently fell back to reshape(-1, 1) when
+    # counts didn't match, producing meaningless terrain_lowness values.
+    # Now: log a clear warning and set terrain_lowness to all zeros for safety.
     elev_arr = np.array(elevations)
     terrain_lowness = np.zeros(len(cells))
     cols_set = max(c["col"] for c in cells) + 1
     rows_set = max(c["row"] for c in cells) + 1
-    grid_elev = elev_arr.reshape(rows_set, cols_set) if len(elev_arr) == rows_set * cols_set else elev_arr.reshape(-1, 1)
+    expected_count = rows_set * cols_set
+    actual_count = len(elev_arr)
 
-    for i, cell in enumerate(cells):
-        r, c_idx = cell["row"], cell["col"]
-        neighbours = []
-        for dr in [-1, 0, 1]:
-            for dc in [-1, 0, 1]:
-                nr, nc = r + dr, c_idx + dc
-                if 0 <= nr < rows_set and 0 <= nc < cols_set and (dr != 0 or dc != 0):
-                    neighbours.append(grid_elev[nr, nc])
-        if neighbours:
-            terrain_lowness[i] = max(0.0, float(np.mean(neighbours)) - grid_elev[r, c_idx])
-        else:
-            terrain_lowness[i] = 0.0
-    # Normalise terrain_lowness to 0-1
-    tl_max = terrain_lowness.max()
-    if tl_max > 0:
-        terrain_lowness = terrain_lowness / tl_max
+    if actual_count != expected_count:
+        logger.warning(
+            "Terrain grid mismatch for ward '%s': expected %d cells (%dx%d) "
+            "but got %d elevation values. Setting terrain_lowness to flat 0 "
+            "for this request rather than computing nonsense.",
+            effective_ward_id, expected_count, rows_set, cols_set, actual_count,
+        )
+        # terrain_lowness already initialised to zeros — nothing more to do
+    else:
+        grid_elev = elev_arr.reshape(rows_set, cols_set)
+        for i, cell in enumerate(cells):
+            r, c_idx = cell["row"], cell["col"]
+            neighbours = []
+            for dr in [-1, 0, 1]:
+                for dc in [-1, 0, 1]:
+                    nr, nc = r + dr, c_idx + dc
+                    if 0 <= nr < rows_set and 0 <= nc < cols_set and (dr != 0 or dc != 0):
+                        neighbours.append(grid_elev[nr, nc])
+            if neighbours:
+                terrain_lowness[i] = max(0.0, float(np.mean(neighbours)) - grid_elev[r, c_idx])
+            else:
+                terrain_lowness[i] = 0.0
+        # Normalise terrain_lowness to 0-1
+        tl_max = terrain_lowness.max()
+        if tl_max > 0:
+            terrain_lowness = terrain_lowness / tl_max
 
     # Fetch latest sensor state for rate-of-rise modifier
     sensors = await get_latest_sensor_state()
@@ -214,7 +320,7 @@ async def compute_risk(horizon_min: int = 60) -> dict:
 
         # ── Rain ──
         if use_scenario:
-            rain_data = _scenario_rain(lat, lon, horizon_min)
+            rain_data = _scenario_rain(lat, lon, horizon_min, ward)
         else:
             rain_data = forecast_cache.get((round(lat, 2), round(lon, 2))) or await open_meteo.get_forecast(lat, lon, horizon_min)
 
@@ -324,8 +430,9 @@ async def compute_risk(horizon_min: int = 60) -> dict:
                 "elevation_m": round(float(elevations[i]), 1),
                 "forecast_source": rain_data["source"],
                 "elev_from_cache": elev_from_cache,
+                "ward_id": effective_ward_id,
                 "disclaimer": (
-                    "⚠️ Heuristic, uncalibrated risk estimate. "
+                    "WARNING: Heuristic, uncalibrated risk estimate. "
                     "Complements NDMA SACHET; does not replace official warnings."
                 ),
             },
@@ -336,6 +443,7 @@ async def compute_risk(horizon_min: int = 60) -> dict:
         "features": features,
         "metadata": {
             "ward": ward["name"],
+            "ward_id": effective_ward_id,
             "horizon_min": horizon_min,
             "mode": settings.mode,
             "cell_count": len(features),

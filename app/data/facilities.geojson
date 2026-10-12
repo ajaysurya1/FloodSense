@@ -2,11 +2,17 @@
   "type": "FeatureCollection",
   "_data_source": "SEED – illustrative critical facility locations; NOT verified municipal data. Replace with official NDMA/corporation records before operational use.",
   "features": [
-    {"type":"Feature","properties":{"name":"Kotturpuram Govt Hospital","type":"hospital","capacity":120,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2452,13.0198]}},
-    {"type":"Feature","properties":{"name":"Kotturpuram Primary School","type":"school","capacity":800,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2469,13.0142]}},
-    {"type":"Feature","properties":{"name":"Srinivasa Nagar Community Hall (Shelter)","type":"shelter","capacity":300,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2401,13.0218]}},
-    {"type":"Feature","properties":{"name":"Gandhi Nagar Primary School","type":"school","capacity":600,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2488,13.0192]}},
-    {"type":"Feature","properties":{"name":"Kasturba Nagar Govt Dispensary","type":"hospital","capacity":40,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2535,13.0248]}},
-    {"type":"Feature","properties":{"name":"MRTS Kotturpuram Evacuation Point","type":"shelter","capacity":500,"source":"SEED"},"geometry":{"type":"Point","coordinates":[80.2478,13.0100]}}
+    {"type":"Feature","properties":{"name":"Kotturpuram Govt Hospital","type":"hospital","capacity":120,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2452,13.0198]}},
+    {"type":"Feature","properties":{"name":"Kotturpuram Primary School","type":"school","capacity":800,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2469,13.0142]}},
+    {"type":"Feature","properties":{"name":"Srinivasa Nagar Community Hall (Shelter)","type":"shelter","capacity":300,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2401,13.0218]}},
+    {"type":"Feature","properties":{"name":"Gandhi Nagar Primary School","type":"school","capacity":600,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2488,13.0192]}},
+    {"type":"Feature","properties":{"name":"Kasturba Nagar Govt Dispensary","type":"hospital","capacity":40,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2535,13.0248]}},
+    {"type":"Feature","properties":{"name":"MRTS Kotturpuram Evacuation Point","type":"shelter","capacity":500,"source":"SEED","ward_id":"kotturpuram"},"geometry":{"type":"Point","coordinates":[80.2478,13.0100]}},
+    {"type":"Feature","properties":{"name":"Adyar PHC","type":"hospital","capacity":60,"source":"SEED","ward_id":"adyar"},"geometry":{"type":"Point","coordinates":[80.2580,13.0050]}},
+    {"type":"Feature","properties":{"name":"Adyar Community Hall","type":"shelter","capacity":400,"source":"SEED","ward_id":"adyar"},"geometry":{"type":"Point","coordinates":[80.2565,13.0080]}},
+    {"type":"Feature","properties":{"name":"Nandanam Govt Hospital","type":"hospital","capacity":200,"source":"SEED","ward_id":"nandanam"},"geometry":{"type":"Point","coordinates":[80.2300,13.0340]}},
+    {"type":"Feature","properties":{"name":"Nandanam High School","type":"school","capacity":900,"source":"SEED","ward_id":"nandanam"},"geometry":{"type":"Point","coordinates":[80.2320,13.0360]}},
+    {"type":"Feature","properties":{"name":"Velachery PHC","type":"hospital","capacity":80,"source":"SEED","ward_id":"velachery"},"geometry":{"type":"Point","coordinates":[80.2175,12.9820]}},
+    {"type":"Feature","properties":{"name":"Velachery Community Centre","type":"shelter","capacity":600,"source":"SEED","ward_id":"velachery"},"geometry":{"type":"Point","coordinates":[80.2190,12.9815]}}
   ]
 }

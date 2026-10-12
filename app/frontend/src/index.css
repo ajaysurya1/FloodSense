@@ -173,6 +173,37 @@ html, body, #root {
   text-align: right;
 }
 
+/* ── Ward selector dropdown ───────────────────────────────────── */
+.ward-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ward-select {
+  appearance: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 28px 4px 10px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath stroke='%238bafd6' stroke-width='1.5' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color 0.2s;
+  max-width: 200px;
+}
+
+.ward-select:hover,
+.ward-select:focus {
+  border-color: var(--accent-blue);
+  outline: none;
+}
+
 /* ── Sidebar tabs ─────────────────────────────────────────────── */
 .tab-bar {
   display: flex;

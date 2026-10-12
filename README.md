@@ -17,10 +17,11 @@
 | **Drain network** | **SEED** | 7 seed points with capacity class; NOT verified CMDA/GWMB data |
 | **Facilities** | **SEED** | 6 seed hospitals/schools/shelters; NOT verified official records |
 | **IoT sensor readings** | **SIMULATED** | `simulate_sensors.py` streams 5 nodes; flags SIMULATED in API and UI |
+| **CCTV virtual sensors** | **CCTV** (frame grab real; depth proxy ASSUMPTION) | `cctv_ingest.py` opens RTSP/HTTP streams with OpenCV, grabs one frame every 15 s, classifies with CLIP zero-shot (5-label flood grading). The resulting **depth estimate is an UNCALIBRATED VISUAL PROXY** — NOT a measured water depth. Goes through the same D2 override pipeline as physical IoT sensors, tagged `data_source="CCTV"`. Demo uses local ffmpeg loop (`stream_demo_footage.py`); no code difference vs real camera. |
 | **Citizen report CLIP classification** | Real model (graceful fallback) | `openai/clip-vit-base-patch32`; falls back to "needs_manual_review" |
 | **SMS / WhatsApp alerts** | **SIMULATED PREVIEW** | No real messages sent; pluggable Provider class |
 | **CAP 1.2 XML** | **Format demo** | Labelled "not transmitted to SACHET" |
-| **Risk score** | **Heuristic estimate** | Weighted sum; weights are ASSUMPTIONS, not calibrated |
+| **Risk score** | **Heuristic estimate** | Weighted sum; weights are ASSUMPTIONS, not calibrated. See [`app/RISK_CALCULATION.md`](app/RISK_CALCULATION.md) |
 | **Tamil alert copy** | Human-drafted | Needs review by native speaker before real use |
 | **ESP32 firmware** | **Reference only** | Not deployed in demo; `node.ino` is documented but untested |
 
@@ -83,7 +84,10 @@ FloodSense/
 │   │   │       ├── open_meteo.py      # Forecast + cache
 │   │   │       ├── elevation_service.py # SRTM + file cache
 │   │   │       ├── sensor_state.py    # In-memory sensor cache
-│   │   │       └── clip_classifier.py # D4: CLIP zero-shot
+│   │   │       ├── clip_classifier.py # D4: CLIP zero-shot
+│   │   │       └── cctv_ingest.py     # CCTV virtual sensor ingest
+│   │   │   └── routers/
+│   │   │       └── cctv.py            # GET /api/cctv/status
 │   │   └── scripts/
 │   │       └── simulate_sensors.py    # D2: 5-node simulator
 │   ├── frontend/
@@ -105,14 +109,20 @@ FloodSense/
 │   ├── firmware/
 │   │   └── node.ino   # ESP32 reference (not deployed)
 │   └── data/
-│       ├── ward.json             # Demo ward config
-│       ├── hotspots.geojson      # SEED flood locations
-│       ├── drains.geojson        # SEED drain points
-│       ├── facilities.geojson    # SEED critical facilities
+│       ├── wards.json            # Multi-ward config (4 Chennai wards)
+│       ├── cameras.json          # CCTV camera configs (placeholder URLs)
+│       ├── hotspots.geojson      # SEED flood locations (ward_id-tagged)
+│       ├── drains.geojson        # SEED drain points (ward_id-tagged)
+│       ├── facilities.geojson    # SEED critical facilities (ward_id-tagged)
 │       ├── terrain_cache.json    # Auto-populated elevation cache
 │       ├── floodsense.db         # SQLite (auto-created)
 │       └── templates/
 │           └── alert_templates.yaml  # D6 bilingual templates
+├── scripts/
+│   ├── stream_demo_footage.py   # Loop video → RTSP (ffmpeg + mediamtx)
+│   └── stream_demo_footage.sh   # Bash wrapper for the above
+└── app/
+    └── RISK_CALCULATION.md      # Judge Q&A risk formula reference
 ```
 
 ---
@@ -125,25 +135,29 @@ score = 0.30 × rain_intensity_next_3h_norm   (Open-Meteo LIVE)
       + 0.20 × terrain_lowness_norm           (SRTM elevation)
       + 0.15 × hotspot_proximity_score        (SEED)
       + 0.10 × drainage_penalty              (SEED)
-      + 0.05 × sensor_rate_of_rise_norm      (SIMULATED in demo)
+      + 0.05 × sensor_rate_of_rise_norm      (IoT/CCTV virtual sensors)
 ```
 
 **All weights are ASSUMPTIONS** (in `config.yaml`). Not calibrated against historical flood data.
 
 Severity thresholds: Watch ≥ 35, Warning ≥ 60, Severe ≥ 80 (ASSUMPTIONS).
 
+📄 **Full formula reference (for judge Q&A):** [`app/RISK_CALCULATION.md`](app/RISK_CALCULATION.md)
+
 ---
 
 ## Honesty Checklist
 
 - [x] Every risk output labelled "heuristic, uncalibrated estimate"
-- [x] Every data source tagged LIVE / SIMULATED / SEED in API responses and UI
+- [x] Every data source tagged LIVE / SIMULATED / SEED / CCTV in API responses and UI
 - [x] Citizen photo never treated as measured flood depth
+- [x] CCTV depth proxy labelled UNCALIBRATED VISUAL ESTIMATE everywhere (config.yaml + UI + API)
 - [x] Alert footer: "Complements NDMA SACHET; does not replace official warnings"
 - [x] No invented statistics, metrics, costs or client names
 - [x] Tamil copy flagged for native-speaker review
 - [x] SCENARIO mode clearly badged in UI
 - [x] No rainfall faked from water level in firmware
+- [x] Multi-ward support: ward_id derived server-side from lat/lon, never trusted from client
 
 ---
 

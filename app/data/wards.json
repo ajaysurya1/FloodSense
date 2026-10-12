@@ -1,0 +1,70 @@
+[
+  {
+    "ward_id": "kotturpuram",
+    "name": "Kotturpuram Ward",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "ward_no": "174",
+    "centre": { "lat": 13.0155, "lon": 80.2462 },
+    "bbox": {
+      "min_lat": 12.997,
+      "max_lat": 13.034,
+      "min_lon": 80.228,
+      "max_lon": 80.265
+    },
+    "cell_size_m": 150,
+    "population": 48000,
+    "vulnerability_note": "Low-lying area adjacent to Adyar River; historically flood-prone during northeast monsoon. Several underpasses and canal-road junctions are perennial inundation points."
+  },
+  {
+    "ward_id": "adyar",
+    "name": "Adyar Ward",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "ward_no": "173",
+    "centre": { "lat": 13.0067, "lon": 80.2570 },
+    "bbox": {
+      "min_lat": 12.990,
+      "max_lat": 13.023,
+      "min_lon": 80.242,
+      "max_lon": 80.272
+    },
+    "cell_size_m": 150,
+    "population": "[FILL IN – verify with GCC ward census]",
+    "vulnerability_note": "Riparian zone along the Adyar River mouth; estuary and backwater flooding common during cyclone surges and spring tides. SEED data only."
+  },
+  {
+    "ward_id": "nandanam",
+    "name": "Nandanam Ward",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "ward_no": "155",
+    "centre": { "lat": 13.0340, "lon": 80.2310 },
+    "bbox": {
+      "min_lat": 13.021,
+      "max_lat": 13.048,
+      "min_lon": 80.220,
+      "max_lon": 80.245
+    },
+    "cell_size_m": 150,
+    "population": "[FILL IN – verify with GCC ward census]",
+    "vulnerability_note": "Inland low-lying pockets along Buckingham Canal; storm-drain surcharge during heavy rainfall. SEED data only."
+  },
+  {
+    "ward_id": "velachery",
+    "name": "Velachery Ward",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "ward_no": "194",
+    "centre": { "lat": 12.9815, "lon": 80.2180 },
+    "bbox": {
+      "min_lat": 12.963,
+      "max_lat": 13.000,
+      "min_lon": 80.201,
+      "max_lon": 80.237
+    },
+    "cell_size_m": 150,
+    "population": "[FILL IN – verify with GCC ward census]",
+    "vulnerability_note": "Pallikaranai marshland fringe; notorious for large-scale inundation in 2015 Chennai floods. Rapid urbanisation has reduced natural water retention. SEED data only."
+  }
+]

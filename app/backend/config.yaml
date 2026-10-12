@@ -55,3 +55,21 @@ alerts:
 
 db:
   path: "../data/floodsense.db"
+
+# CCTV virtual sensor configuration
+# ASSUMPTION: all depth values below are uncalibrated visual proxies,
+# NOT measured water depths. A road that LOOKS ankle-deep from a camera
+# may be significantly deeper or shallower in reality.
+cctv:
+  poll_interval_s: 15         # ASSUMPTION: grab one frame every 15 s
+  retry_interval_s: 60        # retry offline cameras every 60 s
+  cameras_file: "../data/cameras.json"
+
+  # Label-to-proxy-depth mapping (ASSUMPTION values – expert review required)
+  # These are UNCALIBRATED VISUAL ESTIMATES only.
+  depth_proxy_cm:
+    "a dry road":                               0
+    "a road with light standing water":         5
+    "a road with ankle-deep flooding":         15
+    "a road with knee-deep or deeper flooding": 35
+    "no visible road, obstructed view":         -1   # -1 = do not post reading

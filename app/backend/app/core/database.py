@@ -36,6 +36,7 @@ async def init_db() -> None:
                 lat          REAL,
                 lon          REAL,
                 data_source  TEXT DEFAULT 'SIMULATED',
+                ward_id      TEXT,
                 created_at   TEXT DEFAULT (datetime('now'))
             );
 
@@ -50,7 +51,8 @@ async def init_db() -> None:
                 lon          REAL,
                 status       TEXT DEFAULT 'offline',
                 data_source  TEXT DEFAULT 'SIMULATED',
-                alert_active INTEGER DEFAULT 0
+                alert_active INTEGER DEFAULT 0,
+                ward_id      TEXT
             );
 
             CREATE TABLE IF NOT EXISTS citizen_reports (
@@ -72,6 +74,7 @@ async def init_db() -> None:
                 exif_ts      TEXT,
                 exif_lat     REAL,
                 exif_lon     REAL,
+                ward_id      TEXT,
                 created_at   TEXT DEFAULT (datetime('now'))
             );
 
@@ -108,4 +111,18 @@ async def init_db() -> None:
                 source_id    INTEGER
             );
         """)
+        await db.commit()
+
+        # ── Migration: add ward_id to tables that pre-date this column ─────
+        # ALTER TABLE IF COLUMN NOT EXISTS is not standard SQLite; use
+        # PRAGMA table_info to check before altering.
+        for table, col in [
+            ("sensor_readings", "ward_id"),
+            ("sensor_devices",  "ward_id"),
+            ("citizen_reports", "ward_id"),
+        ]:
+            cursor = await db.execute(f"PRAGMA table_info({table})")
+            columns = [row[1] for row in await cursor.fetchall()]
+            if col not in columns:
+                await db.execute(f"ALTER TABLE {table} ADD COLUMN {col} TEXT")
         await db.commit()

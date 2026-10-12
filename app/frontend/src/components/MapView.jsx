@@ -17,33 +17,38 @@ const HORIZONS = [30, 60, 120, 180]
 function MapCentrer({ ward }) {
   const map = useMap()
   useEffect(() => {
-    if (ward?.centre) {
+    if (!ward) return
+    if (ward.bbox) {
+      const { min_lat, max_lat, min_lon, max_lon } = ward.bbox
+      map.fitBounds([[min_lat, min_lon], [max_lat, max_lon]], { padding: [20, 20] })
+    } else if (ward.centre) {
       map.setView([ward.centre.lat, ward.centre.lon], 14)
     }
-  }, [ward, map])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ward?.ward_id, map])  // only trigger on ward change, not every centre object re-render
   return null
 }
 
-export default function MapView({ horizon, setHorizon, selectedCell, setSelectedCell, ward, mode }) {
+export default function MapView({ horizon, setHorizon, selectedCell, setSelectedCell, ward, wardId, mode }) {
   const defaultCenter = ward?.centre
     ? [ward.centre.lat, ward.centre.lon]
     : [13.0155, 80.2462]
 
   const { data: riskData, isLoading: riskLoading, dataUpdatedAt } = useQuery({
-    queryKey: ['risk', horizon],
-    queryFn: () => fetchRisk(horizon),
+    queryKey: ['risk', horizon, wardId],
+    queryFn: () => fetchRisk(horizon, wardId),
     refetchInterval: 60_000,
   })
 
   const { data: sensorData } = useQuery({
-    queryKey: ['sensors'],
-    queryFn: fetchSensors,
+    queryKey: ['sensors', wardId],
+    queryFn: () => fetchSensors(wardId),
     refetchInterval: 15_000,
   })
 
   const { data: reportData } = useQuery({
-    queryKey: ['reports'],
-    queryFn: fetchReports,
+    queryKey: ['reports', wardId],
+    queryFn: () => fetchReports(wardId),
     refetchInterval: 30_000,
   })
 

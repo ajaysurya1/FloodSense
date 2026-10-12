@@ -75,5 +75,18 @@ class Settings(BaseSettings):
     # alert templates
     template_file: str = str(_DATA_DIR / "templates" / "alert_templates.yaml")
 
+    # CCTV
+    cctv_poll_interval_s: int   = _RAW.get("cctv", {}).get("poll_interval_s", 15)
+    cctv_retry_interval_s: int  = _RAW.get("cctv", {}).get("retry_interval_s", 60)
+    cctv_cameras_file: str      = str(_DATA_DIR / "cameras.json")
+    # Depth proxy map: label str -> cm (-1 = skip posting)
+    cctv_depth_proxy: dict      = _RAW.get("cctv", {}).get("depth_proxy_cm", {
+        "a dry road": 0,
+        "a road with light standing water": 5,
+        "a road with ankle-deep flooding": 15,
+        "a road with knee-deep or deeper flooding": 35,
+        "no visible road, obstructed view": -1,
+    })
+
 
 settings = Settings()

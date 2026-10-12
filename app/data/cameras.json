@@ -1,0 +1,29 @@
+[
+  {
+    "camera_id": "demo_cam_1",
+    "label": "Kotturpuram – Adyar River Bridge",
+    "stream_url": "rtsp://localhost:8554/demo_cam_1",
+    "lat": 13.0141,
+    "lon": 80.2475,
+    "ward_id": "kotturpuram",
+    "_note": "PLACEHOLDER – replace stream_url with a real RTSP/HTTP URL or keep for local loop demo."
+  },
+  {
+    "camera_id": "demo_cam_2",
+    "label": "Kotturpuram – 5th Avenue Junction",
+    "stream_url": "rtsp://localhost:8554/demo_cam_2",
+    "lat": 13.0168,
+    "lon": 80.2445,
+    "ward_id": "kotturpuram",
+    "_note": "PLACEHOLDER – replace stream_url with a real RTSP/HTTP URL or keep for local loop demo."
+  },
+  {
+    "camera_id": "demo_cam_3",
+    "label": "Adyar – Gandhi Nagar Main Road",
+    "stream_url": "rtsp://localhost:8554/demo_cam_3",
+    "lat": 13.0065,
+    "lon": 80.2567,
+    "ward_id": "adyar",
+    "_note": "PLACEHOLDER – replace stream_url with a real RTSP/HTTP URL or keep for local loop demo."
+  }
+]

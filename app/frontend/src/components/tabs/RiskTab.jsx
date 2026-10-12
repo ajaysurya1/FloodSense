@@ -3,10 +3,10 @@ import { fetchRisk } from '../../api'
 
 const SEV_ORDER = { Severe: 0, Warning: 1, Watch: 2, Normal: 3 }
 
-export default function RiskTab({ selectedCell, horizon }) {
+export default function RiskTab({ selectedCell, horizon, wardId }) {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['risk', horizon],
-    queryFn: () => fetchRisk(horizon),
+    queryKey: ['risk', horizon, wardId],
+    queryFn: () => fetchRisk(horizon, wardId),
     refetchInterval: 60_000,
   })
 

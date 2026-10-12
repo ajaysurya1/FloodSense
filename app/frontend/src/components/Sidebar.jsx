@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   Map, Wifi, MessageSquare, Bell, CheckSquare, BarChart2
 } from 'lucide-react'
@@ -18,7 +17,7 @@ const TABS = [
   { id: 'dashboard', label: 'Dashboard', Icon: BarChart2 },
 ]
 
-export default function Sidebar({ activeTab, setActiveTab, selectedCell, horizon, mode, ward }) {
+export default function Sidebar({ activeTab, setActiveTab, selectedCell, horizon, mode, ward, wardId }) {
   return (
     <aside className="sidebar">
       <div className="tab-bar">
@@ -36,12 +35,12 @@ export default function Sidebar({ activeTab, setActiveTab, selectedCell, horizon
       </div>
 
       <div className="tab-content">
-        {activeTab === 'risk'      && <RiskTab selectedCell={selectedCell} horizon={horizon} />}
-        {activeTab === 'sensors'   && <SensorsTab />}
-        {activeTab === 'reports'   && <ReportsTab />}
+        {activeTab === 'risk'      && <RiskTab selectedCell={selectedCell} horizon={horizon} wardId={wardId} />}
+        {activeTab === 'sensors'   && <SensorsTab wardId={wardId} />}
+        {activeTab === 'reports'   && <ReportsTab wardId={wardId} />}
         {activeTab === 'alerts'    && <AlertsTab ward={ward} />}
         {activeTab === 'tasks'     && <TasksTab />}
-        {activeTab === 'dashboard' && <DashboardTab horizon={horizon} />}
+        {activeTab === 'dashboard' && <DashboardTab horizon={horizon} wardId={wardId} />}
       </div>
     </aside>
   )

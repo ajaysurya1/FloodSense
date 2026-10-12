@@ -4,12 +4,12 @@ import { fetchDashboard, createTask } from '../../api'
 const SEV_COLORS = { Severe: '#ef4444', Warning: '#f97316', Watch: '#fbbf24', Normal: '#4ade80' }
 const FAC_ICONS = { hospital: '🏥', school: '🏫', shelter: '⛺' }
 
-export default function DashboardTab({ horizon }) {
+export default function DashboardTab({ horizon, wardId }) {
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['dashboard', horizon],
-    queryFn: () => fetchDashboard(horizon),
+    queryKey: ['dashboard', horizon, wardId],
+    queryFn: () => fetchDashboard(horizon, wardId),
     refetchInterval: 60_000,
   })
 
